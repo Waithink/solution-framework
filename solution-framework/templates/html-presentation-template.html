@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>解决方案 — 微盟售前</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0f0f13; --surface: #1a1a24; --surface2: #23232f;
+    --border: #2d2d3d; --accent: #6c5ce7; --accent2: #a29bfe;
+    --accent3: #fd79a8; --text: #e8e8f0; --text2: #9898b0;
+    --green: #00b894; --orange: #fdcb6e; --red: #ff7675; --blue: #74b9ff;
+  }
+  body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; width: 100vw; }
+  .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 60px 80px; display: flex; flex-direction: column; opacity: 0; transition: opacity .5s; pointer-events: none; overflow-y: auto; }
+  .slide.active { opacity: 1; pointer-events: auto; }
+  .nav { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 100; align-items: center; }
+  .nav button { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 20px; cursor: pointer; font-size: 14px; }
+  .nav button:hover { background: var(--accent); }
+  .pagenum { color: var(--text2); font-size: 13px; }
+  .source { position: absolute; top: 20px; right: 30px; font-size: 11px; color: var(--text2); opacity: .6; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; background: var(--accent); color: white; margin: 0 4px 4px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 8px 0; }
+  .card-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .card .title { font-size: 15px; font-weight: 700; color: var(--accent2); margin-bottom: 8px; }
+  h1 { font-size: 42px; font-weight: 900; margin-bottom: 16px; }
+  h2 { font-size: 32px; font-weight: 700; margin-bottom: 24px; }
+  h3 { font-size: 22px; font-weight: 500; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+  th { color: var(--text2); font-weight: 500; font-size: 12px; text-transform: uppercase; }
+  .flex-row { display: flex; gap: 20px; }
+  .flex-row > * { flex: 1; }
+  .timeline { display: flex; margin: 24px 0; }
+  .timeline-item { flex: 1; text-align: center; padding: 16px; position: relative; }
+  .timeline-item::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--accent); }
+  .timeline-item:first-child::before { left: 50%; }
+  .timeline-item:last-child::before { right: 50%; }
+  .timeline-dot { width: 14px; height: 14px; background: var(--accent); border-radius: 50%; margin: 0 auto 8px; position: relative; z-index: 1; }
+  .timeline-label { font-size: 11px; color: var(--text2); }
+  .timeline-title { font-size: 13px; font-weight: 700; }
+  .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .matrix-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .matrix-item.critical { border-color: var(--red); }
+  .matrix-item h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .matrix-item p { font-size: 13px; color: var(--text2); }
+  .cover-center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%; }
+  .cover-center h1 { font-size: 56px; margin-bottom: 20px; }
+  .cover-center .subtitle { font-size: 20px; color: var(--text2); margin-bottom: 40px; }
+  .cover-center .meta { font-size: 14px; color: var(--text2); }
+</style>
+</head>
+<body>
+<div class="presentation" id="app"></div>
+<div class="nav">
+  <button onclick="prevSlide()">&#9664; 上一页</button>
+  <span class="pagenum" id="pagenum">1 / 1</span>
+  <button onclick="nextSlide()">下一页 &#9654;</button>
+</div>
+<script>
+const slides = [
+  {
+    content: `<div class="cover-center"><h1>[品牌名] 全链路数字化增长方案</h1><div class="subtitle">微盟智慧零售 · 售前解决方案框架</div><div class="meta">微盟售前咨询部 | 2026年M月</div></div>`
+  },
+  {
+    content: `<div class="source">来源：[知识库文件]</div><h2>封面模板</h2><p>=== 替换 slides 数组中的每页内容，复制即用 ===</p><p style="color:var(--text2)">保留所有HTML结构和CSS类名，只替换卡片内的文本和表格数据。</p>`
+  },
+  {
+    content: `<div class="cover-center"><h1>感谢聆听</h1><div class="subtitle">微盟 · 让商业更智慧</div><div class="meta">微盟售前咨询部</div></div>`
+  }
+];
+
+let current = 0;
+const app = document.getElementById('app');
+function renderSlide(idx) {
+  const d = document.createElement('div');
+  d.className = 'slide' + (idx === current ? ' active' : '');
+  d.innerHTML = slides[idx].content;
+  return d;
+}
+function render() {
+  app.innerHTML = '';
+  slides.forEach((_, i) => app.appendChild(renderSlide(i)));
+  updateNav();
+}
+function goToSlide(n) {
+  document.querySelectorAll('.slide').forEach(e => e.classList.remove('active'));
+  current = (n + slides.length) % slides.length;
+  document.querySelectorAll('.slide')[current].classList.add('active');
+  updateNav();
+}
+function nextSlide() { goToSlide(current + 1); }
+function prevSlide() { goToSlide(current - 1); }
+function updateNav() { document.getElementById('pagenum').textContent = (current + 1) + ' / ' + slides.length; }
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight'||e.key==='ArrowDown') nextSlide(); if (e.key === 'ArrowLeft'||e.key==='ArrowUp') prevSlide(); });
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; });
+document.addEventListener('touchend', e => { const d = tx - e.changedTouches[0].clientX; if (Math.abs(d) > 50) d > 0 ? nextSlide() : prevSlide(); });
+render();
+</script>
+</body>
+</html>
